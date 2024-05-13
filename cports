@@ -1,15 +1,71 @@
-#!/bin/bash
-sed -i.bak -e "s%^proxy_app = \"tcp://127.0.0.1:26658\"%proxy_app = \"tcp://127.0.0.1:46658\"%; s%^laddr = \"tcp://127.0.0.1:26657\"%laddr = \"tcp://127.0.0.1:46657\"%; s%^pprof_laddr = \"localhost:6060\"%pprof_laddr = \"localhost:6062\"%; s%^laddr = \"tcp://0.0.0.0:26656\"%laddr = \"tcp://0.0.0.0:46656\"%; s%^prometheus_listen_addr = \":26660\"%prometheus_listen_addr = \":46660\"%" $HOME/.0gchain/config/config.toml
-sed -i.bak -e "s%^address = \"localhost:9090\"%address = \"localhost:9190\"%; s%^address = \"localhost:9091\"%address = \"localhost:9191\"%; s%^address = \"tcp://localhost:1317\"%address = \"tcp://localhost:1327\"%" $HOME/.0gchain/config/app.toml
-sed -i.bak -e "s%^node = \"tcp://localhost:26657\"%node = \"tcp://localhost:36657\"%" $HOME/.0gchain/config/client.toml
-sudo systemctl restart 0gchain
-echo -e '\e[40m\e[91m'
-echo -e ' 26656-->36656 '
-echo -e ' 26657-->36657 '
-echo -e ' 26658-->36658 '
-echo -e ' 6060 --> 6061 '
-echo -e ' 26660-->36660 '
-echo -e ' 9090 --> 9190 '
-echo -e ' 9091 --> 9191 '
-echo -e ' 1317 --> 1327 '
-echo -e '\e[0m'
+PORT=335
+if ss -tulpen | awk '{print $5}' | grep -q ":26656$" ; then
+    echo -e "\e[31mPort 26656 already in use.\e[39m"
+    sleep 2
+    sed -i -e "s|:26656\"|:${PORT}56\"|g" $DAEMON_HOME/config/config.toml
+    echo -e "\n\e[42mPort 26656 changed to ${PORT}56.\e[0m\n"
+    sleep 2
+fi
+if ss -tulpen | awk '{print $5}' | grep -q ":26657$" ; then
+    echo -e "\e[31mPort 26657 already in use\e[39m"
+    sleep 2
+    sed -i -e "s|:26657\"|:${PORT}57\"|" $DAEMON_HOME/config/config.toml
+    echo -e "\n\e[42mPort 26657 changed to ${PORT}57.\e[0m\n"
+    sleep 2
+    $DAEMON_NAME config node tcp://localhost:${PORT}57
+fi
+if ss -tulpen | awk '{print $5}' | grep -q ":26658$" ; then
+    echo -e "\e[31mPort 26658 already in use.\e[39m"
+    sleep 2
+    sed -i -e "s|:26658\"|:${PORT}58\"|" $DAEMON_HOME/config/config.toml
+    echo -e "\n\e[42mPort 26658 changed to ${PORT}58.\e[0m\n"
+    sleep 2
+fi
+if ss -tulpen | awk '{print $5}' | grep -q ":6060$" ; then
+    echo -e "\e[31mPort 6060 already in use.\e[39m"
+    sleep 2
+    sed -i -e "s|:6060\"|:${PORT}60\"|" $DAEMON_HOME/config/config.toml
+    echo -e "\n\e[42mPort 6060 changed to ${PORT}60.\e[0m\n"
+    sleep 2
+fi
+if ss -tulpen | awk '{print $5}' | grep -q ":1317$" ; then
+    echo -e "\e[31mPort 1317 already in use.\e[39m"
+    sleep 2
+    sed -i -e "s|:1317\"|:${PORT}17\"|" $DAEMON_HOME/config/app.toml
+    echo -e "\n\e[42mPort 1317 changed to ${PORT}17.\e[0m\n"
+    sleep 2
+fi
+if ss -tulpen | awk '{print $5}' | grep -q ":9090$" ; then
+    echo -e "\e[31mPort 9090 already in use.\e[39m"
+    sleep 2
+    sed -i -e "s|:9090\"|:${PORT}90\"|" $DAEMON_HOME/config/app.toml
+    echo -e "\n\e[42mPort 9090 changed to ${PORT}90.\e[0m\n"
+    sleep 2
+fi
+if ss -tulpen | awk '{print $5}' | grep -q ":9091$" ; then
+    echo -e "\e[31mPort 9091 already in use.\e[39m"
+    sleep 2
+    sed -i -e "s|:9091\"|:${PORT}91\"|" $DAEMON_HOME/config/app.toml
+    echo -e "\n\e[42mPort 9091 changed to ${PORT}91.\e[0m\n"
+    sleep 2
+fi
+if ss -tulpen | awk '{print $5}' | grep -q ":8545$" ; then
+    echo -e "\e[31mPort 8545 already in use.\e[39m"
+    sleep 2
+    sed -i -e "s|:8545\"|:${PORT}45\"|" $DAEMON_HOME/config/app.toml
+    echo -e "\n\e[42mPort 8545 changed to ${PORT}45.\e[0m\n"
+    sleep 2
+fi
+if ss -tulpen | awk '{print $5}' | grep -q ":8546$" ; then
+    echo -e "\e[31mPort 8546 already in use.\e[39m"
+    sleep 2
+    sed -i -e "s|:8546\"|:${PORT}46\"|" $DAEMON_HOME/config/app.toml
+    echo -e "\n\e[42mPort 8546 changed to ${PORT}46.\e[0m\n"
+    sleep 2
+fi
+
+#echo -e '\n\e[42mRunning a service\e[0m\n' && sleep 1
+sudo systemctl restart systemd-journald
+sudo systemctl daemon-reload
+sudo systemctl enable $NODE
+sudo systemctl restart $NODE
